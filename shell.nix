@@ -12,6 +12,6 @@ pkgs.stdenv.mkDerivation {
     [ -f usb.ids ] || ln -s ${pkgs.hwdata}/share/hwdata/usb.ids usb.ids
     #[ -f pnp.ids ] || ln -s ${pkgs.hwdata}/share/hwdata/pnp.ids pnp.ids
     [ -f pnp.ids ] || curl "http://tim.id.au/pnp-ids/pnp.ids" > pnp.ids
-    g++ -I${pkgs.nix.dev}/include/nix -shared -o ctypes_friendly_wrapper.so -fPIC ${pkgs.nix}/lib/libnixutil.so ctypes_friendly_wrapper.cc
+    g++ -I${pkgs.nix.dev}/include/nix -shared -o niudu-nix/ctypes_friendly_wrapper.so -fPIC ${pkgs.nix}/lib/libnixutil.so niudu-nix/ctypes_friendly_wrapper.cc
   '';
 }
