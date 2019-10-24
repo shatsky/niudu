@@ -1,10 +1,11 @@
 import os
 from PySide2.QtWidgets import QTreeView
 from PySide2.QtCore import Qt, QItemSelectionModel, QSignalBlocker
-from PySide2.QtGui import QStandardItem, QStandardItemModel, QIcon, QPixmap
+from PySide2.QtGui import QStandardItem, QStandardItemModel, QIcon, QPixmap, QFont
 import subprocess
 import pydenticon
 import ctypes
+import json
 
 
 ctypes_wrapper = ctypes.cdll.LoadLibrary(os.path.dirname(__file__)+'/ctypes_friendly_wrapper.so')
@@ -43,6 +44,7 @@ class StoreTreeView(QTreeView):
         self.selectionModel().currentChanged.connect(self.selection_model__current_changed__handler, Qt.QueuedConnection)
         self.selectionModel().selectionChanged.connect(self.selection_model__selection_changed__handler)
         #self.selection_changed__blocked = False
+        self.system_pkgs_store_paths = [path for path in get_system_pkgs_store_paths()]
 
     # On item expand its store path is queried for dependencies
     def expanded__handler(self, index):
@@ -82,6 +84,10 @@ class StoreTreeView(QTreeView):
         item = QStandardItem(store_path_icon, path[len('/nix/store/681354n3k44r8z90m35hm8945vsp95h1-'):])
         #item.setIcon(colorify_icon(item.icon(), None))
         item.setData(path)
+        if path in self.system_pkgs_store_paths:
+            font = QFont()
+            font.setBold(True)
+            item.setFont(font)
         parent.appendRow(item)
         dummy_item = QStandardItem('')
         item.appendRow(dummy_item)
@@ -112,6 +118,7 @@ class StoreTreeView(QTreeView):
         current_item = store_model.itemFromIndex(current)
         self.derivation_view.update(store_path)
         self.contents_view.update(store_path)
+        self.summary_view.update(store_path)
         # Select other store items with same store path
         print('Looking for other items with same store path')
         #next_visible_item_index = store_view.indexAt(store_view.rect().topLeft())
@@ -167,7 +174,15 @@ def iter_command_output_lines(command):
     for line in get_command_output(command).decode().split('\n'):
         if not line:
             break
-        yield dep_path
+        yield line
+
+def get_system_pkgs_store_paths():
+    #command = "nix-instantiate --strict --eval -E 'builtins.map (p: p.outPath) (import <nixpkgs/nixos> {}).config.environment.systemPackages' --json"
+    process = subprocess.Popen(["nix-instantiate", "--strict", "--eval", "-E", "builtins.map (p: p.outPath) (import <nixpkgs/nixos> {}).config.environment.systemPackages", "--json"], stdout=subprocess.PIPE)
+    (output, _) = process.communicate()
+    _ = process.wait()
+    for path in json.loads(output):
+        yield path
 
 store_view__selection_changed__blocked = False
 

@@ -1,7 +1,8 @@
 import os
-from PySide2.QtWidgets import QTreeView, QFileSystemModel
+from PySide2.QtWidgets import QTreeView, QFileSystemModel, QMenu
 from PySide2.QtCore import Qt, QItemSelectionModel
 from PySide2.QtGui import QBrush
+import dbus
 
 
 class ContentsModel(QFileSystemModel):
@@ -40,10 +41,20 @@ class ContentsView(QTreeView):
         current_store_path = store_model.itemFromIndex(store_view.selectionModel().selectedIndexes()[-1]).data()
         current_path = contents_model.filePath(contents_view.selectionModel().selectedIndexes()[-1])
         context_menu = QMenu()
+        action_open_in_file_manager = context_menu.addAction('Reveal in file manager')
+        action_copy_full_path = context_menu.addAction('Copy full path')
+        action_to_origin = None
         if not os.path.realpath(current_path).startswith(current_store_path) and os.path.realpath(current_path).startswith('/nix/store/'):
             action_to_origin = context_menu.addAction('Go to origin store path')
         chosen_action = context_menu.exec_(contents_view.mapToGlobal(point))
-        if chosen_action == action_to_origin:
+        if chosen_action == action_open_in_file_manager:
+            bus = dbus.SessionBus()
+            proxy_obj = bus.get_object("org.freedesktop.FileManager1", "/org/freedesktop/FileManager1")
+            iface = dbus.Interface(proxy_obj, "org.freedesktop.FileManager1")
+            iface.ShowItems([contents_model.filePath(contents_view.selectionModel().selectedIndexes()[-1])], "")
+        elif chosen_action == action_copy_full_path:
+            self.clipboard.setText(contents_model.filePath(contents_view.selectionModel().selectedIndexes()[-1]))
+        elif chosen_action == action_to_origin:
             self.get_borrowed_file_store_path_item(contents_model.filePath(contents_view.selectionModel().selectedIndexes()[-1]))
 
     def get_borrowed_file_store_path_item(self, path):
