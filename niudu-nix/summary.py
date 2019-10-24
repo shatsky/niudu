@@ -47,42 +47,60 @@ class SummaryView(QTreeView):
     def expanded__handler(self, index):
         parent_item = self.model.itemFromIndex(index)
         if parent_item is self.immediate_direct_deps_item:
-            parent_item.removeRows(0, parent_item.rowCount())
-            self.immediate_direct_deps = []
-            for dep in iter_command_output_lines('nix-store --query --references '+self.store_path):
-                if dep == self.store_path:
-                    continue
-                self.immediate_direct_deps.append(dep)
-                parent_item.appendRow(QStandardItem(dep))
+            self.immediate_direct_deps_item__load()
         elif parent_item is self.immediate_reverse_deps_item:
-            parent_item.removeRows(0, parent_item.rowCount())
-            self.immediate_reverse_deps = []
-            for dep in iter_command_output_lines('nix-store --query --referrers '+self.store_path):
-                if dep == self.store_path:
-                    continue
-                self.immediate_reverse_deps.append(dep)
-                item = QStandardItem(dep)
-                if dep in self.profiles:
-                    font = QFont()
-                    font.setBold(True)
-                    item.setFont(font)
-                parent_item.appendRow(item)
+            self.immediate_reverse_deps_item__load()
         elif parent_item is self.remote_direct_deps_item:
-            parent_item.removeRows(0, parent_item.rowCount())
-            for dep in iter_command_output_lines('nix-store --query --requisites '+self.store_path):
-                if dep == self.store_path or dep in self.immediate_direct_deps:
-                    continue
-                self.immediate_direct_deps.append(dep)
-                parent_item.appendRow(QStandardItem(dep))
+            self.immediate_direct_deps_item__load()
+            self.remote_direct_deps_item__load()
         elif parent_item is self.remote_reverse_deps_item:
-            parent_item.removeRows(0, parent_item.rowCount())
-            for dep in iter_command_output_lines('nix-store --query --referrers-closure '+self.store_path):
-                if dep == self.store_path or dep in self.immediate_reverse_deps:
-                    continue
-                self.immediate_reverse_deps.append(dep)
-                item = QStandardItem(dep)
-                if dep in self.profiles:
-                    font = QFont()
-                    font.setBold(True)
-                    item.setFont(font)
-                parent_item.appendRow(item)
+            self.immediate_reverse_deps_item__load()
+            self.remote_reverse_deps_item__load()
+
+    def immediate_direct_deps_item__load(self):
+        parent_item = self.immediate_direct_deps_item
+        parent_item.removeRows(0, parent_item.rowCount())
+        self.immediate_direct_deps = []
+        for dep in iter_command_output_lines('nix-store --query --references '+self.store_path):
+            if dep == self.store_path:
+                continue
+            self.immediate_direct_deps.append(dep)
+            parent_item.appendRow(QStandardItem(dep))
+    
+    def immediate_reverse_deps_item__load(self):
+        parent_item = self.immediate_reverse_deps_item
+        parent_item.removeRows(0, parent_item.rowCount())
+        self.immediate_reverse_deps = []
+        for dep in iter_command_output_lines('nix-store --query --referrers '+self.store_path):
+            if dep == self.store_path:
+                continue
+            self.immediate_reverse_deps.append(dep)
+            item = QStandardItem(dep)
+            if dep in self.profiles:
+                font = QFont()
+                font.setBold(True)
+                item.setFont(font)
+            parent_item.appendRow(item)
+    
+    def remote_direct_deps_item__load(self):
+        parent_item = self.remote_direct_deps_item
+        parent_item.removeRows(0, parent_item.rowCount())
+        for dep in iter_command_output_lines('nix-store --query --requisites '+self.store_path):
+            if dep == self.store_path or dep in self.immediate_direct_deps:
+                continue
+            self.immediate_direct_deps.append(dep)
+            parent_item.appendRow(QStandardItem(dep))
+
+    def remote_reverse_deps_item__load(self):
+        parent_item = self.remote_reverse_deps_item
+        parent_item.removeRows(0, parent_item.rowCount())
+        for dep in iter_command_output_lines('nix-store --query --referrers-closure '+self.store_path):
+            if dep == self.store_path or dep in self.immediate_reverse_deps:
+                continue
+            self.immediate_reverse_deps.append(dep)
+            item = QStandardItem(dep)
+            if dep in self.profiles:
+                font = QFont()
+                font.setBold(True)
+                item.setFont(font)
+            parent_item.appendRow(item)
