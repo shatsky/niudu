@@ -21,21 +21,6 @@ with open('/proc/devices') as f:
                 db_numbers[scope][int(number)] = line[4:]
 
 
-# Device class constructor fills object fields with data nesessary for displaying device item in devices tree
-# This data can be reused by props tree functions to avoid duplicate file access and other operations
-
-class BaseDevice:
-
-    def __init__(self, path):
-        self.path = path
-
-
-class GenericDevice(BaseDevice):
-
-    def __init__(self, path):
-        super().__init__(path)
-
-
 # get data for displaying device in devices tree widget and anything else that can be fetched together with it and can be needed later for displaying device details
 def update_dict(device_path, device_dict):
     if 'subsystem' in os.listdir(device_path):
