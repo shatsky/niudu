@@ -1,26 +1,43 @@
 import sys
-from PySide2.QtWidgets import QApplication, QWidget, QHBoxLayout, QMenuBar
-from PySide2.QtCore import Qt
+from PySide2 import QtWidgets
 
-# Must construct a QApplication before a QWidget
-app = QApplication(sys.argv)
+# "Must construct a QApplication before a QWidget"
+# i. e. before importing stuff that instantiates QWidget
+app = QtWidgets.QApplication(sys.argv)
 
 from ui_devices_view import devices_view, add_devices
 from ui_device_props_view import device_props_tree_widget
 
 
-# populate ui_devices_view
-add_devices()
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self, *args, **kwargs):
+        QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
+        
+        menu_bar = self.menuBar()
+        tree_menu = QtWidgets.QMenu('Tree', self)
+        action = tree_menu.addAction('Reload')
+        action.triggered.connect(self.reload__handler)
+        action = tree_menu.addAction('Go to last added device')
+        action.triggered.connect(self.last_added_device__handler)
+        menu_bar.addMenu(tree_menu)
 
-#top_menu = QMenuBar()
-#device_menu = top_menu.addMenu('Device')
-window = QWidget()
-layout = QHBoxLayout()
-#layout.addWidget(top_menu)
-#layout.addWidget(treeWidget)
-layout.addWidget(devices_view)
-#layout.addWidget(tableWidget)
-layout.addWidget(device_props_tree_widget)
-window.setLayout(layout)
-window.show()
+        layout_base = QtWidgets.QHBoxLayout()
+        layout_base.addWidget(devices_view)
+        layout_base.addWidget(device_props_tree_widget)        
+        central_widget = QtWidgets.QWidget()
+        central_widget.setLayout(layout_base)
+        self.setCentralWidget(central_widget)
+        
+        self.showMaximized()
+    
+    def reload__handler(self, action):
+        add_devices()
+    
+    def last_added_device__handler(self, action):
+        from ui_devices_view import last_added_device, set_current_device
+        set_current_device(last_added_device)
+        
+
+
+window = MainWindow()
 app.exec_()

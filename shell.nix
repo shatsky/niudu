@@ -5,7 +5,7 @@ let
 in
 pkgs.stdenv.mkDerivation {
   name = "niudu-playground";
-  buildInputs = [ pkgs.cmake pkgs.zlib pkgs.libGL pkgs.xorg.libxcb pkgs.libudev pkgs_unstable.python3Packages.pyside2 pkgs.python3Packages.pydenticon pkgs.boost pkgs.python3Packages.dbus-python ];
+  buildInputs = [ pkgs.cmake pkgs.zlib pkgs.libGL pkgs.xorg.libxcb pkgs.libudev pkgs_unstable.python3Packages.pyside2 pkgs.python3Packages.pydenticon pkgs.boost pkgs.python3Packages.dbus-python pkgs.python3Packages.pyudev ];
   shellHook = ''
     export PYTHONPATH=$PYTHONPATH:${pkgs_unstable.python3Packages.pyside2}/lib/python3.7/site-packages:${pkgs_unstable.python3Packages.shiboken2}/lib/python3.7/site-packages
     export QT_PLUGIN_PATH="${pkgs_unstable.qt5.qtbase}/lib/qt-5.12.3/plugins"
