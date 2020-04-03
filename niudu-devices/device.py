@@ -23,7 +23,8 @@ with open('/proc/devices') as f:
 
 # get data for displaying device in devices tree widget and anything else that can be fetched together with it and can be needed later for displaying device details
 def update_dict(device_path, device_dict):
-    if 'subsystem' in os.listdir(device_path):
+    device_dict['listdir'] = os.listdir(device_path)
+    if 'subsystem' in device_dict['listdir']:
         subsystem_name = get_symlink_path(device_path, 'subsystem').split('/')[-1]
         device_dict['subsystem'] = subsystem_name
         if subsystem_name in dir(subsystems):
@@ -31,16 +32,28 @@ def update_dict(device_path, device_dict):
             if hasattr(subsystem_module, 'update_dict'):
                 device = getattr(subsystems, subsystem_name).update_dict(device_path, device_dict)
                 return
-        else:
-            device_dict['subsystem'] = subsystem_name
     device_name = device_path.split('/')[-1]
+    if device_dict.get('subsystem') == 'graphics':
+        device_dict['name'] = 'Legacy graphics'
+        if device_path.split('/')[-1].startswith('fb'):
+            device_dict['name'] += ' framebuffer ' + device_path.split('/')[-1][2:]
+        else:
+            device_dict['name'] += ' device "' + device_path.split('/')[-1] + '"'
+        return
+    elif device_dict.get('subsystem') == 'pci_express' and device_name.startswith(device_path.split('/')[-2]) and device_name[12:17]==':pcie' and device_name[17:].isdigit():
+        # "PCI Express port service device"
+        device_dict['name'] = 'PCIe port services (0x' + device_name[17:] + ')'
+        return
+    elif device_dict.get('subsystem') == 'event_source':
+        device_dict['name'] = 'Event source "' + device_name + '"'
+        return
     if device_name.startswith('ep_'):
         device_dict['name'] = 'USB endpoint '+device_name[3:]
     elif device_name.startswith('pci'):
         device_dict['name'] = 'PCI domain ' + device_name[3:7] + ' host bridge (to bus ' + device_name[8:10] + ') root'
     elif device_path.startswith('/sys/devices/pnp') and device_path[len('/sys/devices/pnp'):].isdigit():
         pnp_protocol = device_path[len('/sys/devices/pnp'):]
-        if '00:00' in os.listdir(device_path) and 'firmware_node' in os.listdir(device_path+'/00:00') and get_symlink_path(device_path+'/00:00/firmware_node', 'subsystem').endswith('/acpi'):
+        if '00:00' in device_dict['listdir'] and 'firmware_node' in os.listdir(device_path+'/00:00') and get_symlink_path(device_path+'/00:00/firmware_node', 'subsystem').endswith('/acpi'):
             pnp_protocol = 'ACPI'
         device_dict['name'] = 'PnP'
         if pnp_protocol == 'ACPI':
@@ -64,9 +77,9 @@ def update_dict(device_path, device_dict):
             device_dict['name'] = 'Virtual devices'
         else:
             device_dict['name'] = device_name
-    elif device_name.startswith('ata') and 'ata_port' in os.listdir(device_path) and device_name in os.listdir(device_path+'/ata_port') and get_symlink_path(device_path+'/ata_port/'+device_name, 'subsystem').endswith('ata_port'):
+    elif device_name.startswith('ata') and 'ata_port' in device_dict['listdir'] and device_name in os.listdir(device_path+'/ata_port') and get_symlink_path(device_path+'/ata_port/'+device_name, 'subsystem').endswith('ata_port'):
         device_dict['name'] = 'ATA port ' + device_name[3:]
-    elif device_name.startswith('link') and 'ata_link' in os.listdir(device_path) and device_name in os.listdir(device_path+'/ata_link') and get_symlink_path(device_path+'/ata_link/'+device_name, 'subsystem').endswith('ata_link'):
+    elif device_name.startswith('link') and 'ata_link' in device_dict['listdir'] and device_name in os.listdir(device_path+'/ata_link') and get_symlink_path(device_path+'/ata_link/'+device_name, 'subsystem').endswith('ata_link'):
         device_dict['name'] = 'ATA link ' + device_name[4:]
     else:
         device_dict['name'] = device_name
@@ -85,7 +98,7 @@ def iter_props_tree_items(device_path, device_dict):
                 yield QTreeWidgetItem(None, ['Subsystem: '+device_dict['subsystem']])
         else:
             yield QTreeWidgetItem(None, ['Subsystem: '+device_dict['subsystem']])
-    if 'dev' in os.listdir(device_path):
+    if 'dev' in device_dict['listdir']:
         files_item = QTreeWidgetItem(None, ['Special device files'])
         numbers = get_file_contents(device_path, 'dev')
         if numbers in os.listdir('/sys/dev/block') and get_symlink_path('/sys/dev/block', numbers) == device_path:
@@ -105,11 +118,15 @@ def iter_props_tree_items(device_path, device_dict):
                 if os.major(stat_res.st_rdev) == int(major) and os.minor(stat_res.st_rdev) == int(minor) and (((files_type == 'block') and stat.S_ISBLK(stat_res[stat.ST_MODE])) or ((files_type == 'char') and stat.S_ISCHR(stat_res[stat.ST_MODE]))):
                     QTreeWidgetItem(files_item, ['Path: '+root+'/'+file])
         yield files_item
-    if 'modalias' in os.listdir(device_path):
+    if 'modalias' in device_dict['listdir']:
         yield QTreeWidgetItem(None, ['Kernel module alias: '+get_file_contents(device_path, 'modalias')])
-    if 'driver' in os.listdir(device_path):
+    if 'driver' in device_dict['listdir']:
         yield QTreeWidgetItem(None, ['Driver: '+get_symlink_path(device_path, 'driver').split('/')[-1]+((' (registered by module '+get_symlink_path(device_path, 'driver/module').split('/')[-1]+')') if 'module' in os.listdir(device_path+'/driver') else '')])
-    if 'firmware_node' in os.listdir(device_path):
+    if 'firmware_node' in device_dict['listdir']:
         yield QTreeWidgetItem(None, ['Related firmware node: '+get_symlink_path(device_path, 'firmware_node')])
-    if 'physical_node' in os.listdir(device_path):
+    if 'physical_node' in device_dict['listdir']:
         yield QTreeWidgetItem(None, ['Related physical node: '+get_symlink_path(device_path, 'physical_node')])
+    # 'device' dir entry can be many things
+    # if it's symlink, it can point to e. g. attached device for usb port node
+    #if 'device' in device_dict['listdir']:
+    #    yield QTreeWidgetItem(None, ['Related controller node: '+get_symlink_path(device_path, 'device')])

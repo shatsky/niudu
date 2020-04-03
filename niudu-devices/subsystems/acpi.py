@@ -46,13 +46,13 @@ def update_dict(device_path, device_dict):
             device_dict['name'] += ' "' + device_id + '" device object ' + device_number
             device_id_prefix = device_id[:-4]
             device_id_number = device_id[-4:]
-            print(device_id_prefix, device_id_number)
+            #print(device_id_prefix, device_id_number)
             db_vendor = pnp_db.get(device_id_prefix.lower())
             if db_vendor:
-                print(db_vendor)
+                #print(db_vendor)
                 db_device = db_vendor[1].get(device_id_number.lower())
                 if db_device:
-                    print(db_device)
+                    #print(db_device)
                     if device_id_prefix == 'PNP':
                         device_dict['name'] += ': ' + db_device
                     else:

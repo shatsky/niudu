@@ -3,6 +3,8 @@ from . import \
     ata_port, \
     drm, \
     hid, \
+    hwmon, \
+    i2c, \
     input, \
     net, \
     pci_bus, \

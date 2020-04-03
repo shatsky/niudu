@@ -1,5 +1,5 @@
 def update_dict(device_path, device_dict):
-    device_dict['name'] = 'Sound card'
+    device_dict['name'] = 'ALSA sound card'
     device_name = device_path.split('/')[-1]
     if device_name.startswith('pcm'):
         device_dict['name'] += ' device ' + device_name[6]

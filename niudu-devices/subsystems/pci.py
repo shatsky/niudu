@@ -119,6 +119,5 @@ def iter_props_tree_items(device_path, device_dict):
             resource_records.append(line[:-1].split(' '))
     for i in range(6):
         QTreeWidgetItem(resources_item, ['BAR '+str(i)+': '+str(resource_records[i])])
-            
     
     yield subsystem_item
