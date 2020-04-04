@@ -1,7 +1,7 @@
 #import pyudev
 import os
 from PySide2.QtWidgets import QApplication, QMenu, QTreeView
-from PySide2.QtCore import Qt, QItemSelectionModel, QThread, Signal, Slot, QObject
+from PySide2.QtCore import Qt, QThread, Signal, Slot, QObject
 from PySide2.QtGui import QStandardItem, QStandardItemModel, QIcon
 
 import subsystems
@@ -130,8 +130,6 @@ class DevicesView(QTreeView):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.context_menu_handler)
         
-        self.selectionModel().selectionChanged.connect(self.devices_view_item_selected)
-        
         self.reload()
         
         self.device_monitor = DeviceMonitor()
@@ -150,7 +148,6 @@ class DevicesView(QTreeView):
             return
         elif action == 'add':
             item = self.model.insert(device.sys_path)
-            #set_current_device(device_path)
             self.set_current_item(item)
         elif action == 'remove':
             current_device_path = self.get_current_device()
@@ -164,24 +161,21 @@ class DevicesView(QTreeView):
         if current_device_path is not None:
             self.set_current_device(current_device_path)
 
-    def devices_view_item_selected(self, current, previous):
-        current_indexes = current.indexes()
-        print('selection changed', current_indexes)
-        if current_indexes:
-            device_path = self.model.itemFromIndex(current.indexes()[-1]).data()
-            logging.debug('device selected: '+device_path)
-            device_props_tree_widget.clear()
-            device_props_tree_widget.addTopLevelItems([item for item in iter_device_props_tree_items(device_path, devices_dict[device_path])])
-            device_props_tree_widget.expandAll()
+    def currentChanged(self, current, previous):
+        device_path = self.model.itemFromIndex(current).data()
+        logging.debug('device selected: '+device_path)
+        device_props_tree_widget.clear()
+        device_props_tree_widget.addTopLevelItems([item for item in iter_device_props_tree_items(device_path, devices_dict[device_path])])
+        device_props_tree_widget.expandAll()
 
     def get_current_device(self):
-        selected_indexes = self.selectionModel().selectedIndexes()
-        if selected_indexes:
-            return self.model.itemFromIndex(selected_indexes[-1]).data()
+        current_index = self.currentIndex()
+        if current_index is not None:
+            current_item = self.model.itemFromIndex(current_index)
+            if current_item is not None:
+                return current_item.data()
 
     def set_current_index(self, index):
-        # "selected" and "current" are different things
-        #self.selectionModel().select(index, QItemSelectionModel.ClearAndSelect)
         self.setCurrentIndex(index)
         self.scrollTo(index)
 
@@ -200,8 +194,7 @@ class DevicesView(QTreeView):
         self.set_current_item(item)
         
     def context_menu_handler(self, point):
-        #device = treeWidget.currentItem().data(0, -1)
-        device_path = self.model.itemFromIndex(self.selectionModel().selectedIndexes()[-1]).data()
+        device_path = self.get_current_device()
         context_menu = QMenu()
         action_copy_path = context_menu.addAction('Copy path')
         device_listdir = os.listdir(device_path)
@@ -214,10 +207,10 @@ class DevicesView(QTreeView):
             clipboard.setText(device_path)
         elif 'firmware_node' in device_listdir and chosen_action is action_to_firmware:
             target_device_path = os.path.abspath(os.path.join(device_path, os.readlink(os.path.join(device_path, 'firmware_node'))))
-            set_current_device(target_device_path)
+            self.set_current_device(target_device_path)
         elif 'physical_node' in device_listdir and chosen_action is action_to_physical:
             target_device_path = os.path.abspath(os.path.join(device_path, os.readlink(os.path.join(device_path, 'physical_node'))))
-            set_current_device(target_device_path)
+            self.set_current_device(target_device_path)
 
 
 def get_parent_item(device_path):
