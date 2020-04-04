@@ -5,7 +5,7 @@ from PySide2 import QtWidgets
 # i. e. before importing stuff that instantiates QWidget
 app = QtWidgets.QApplication(sys.argv)
 
-from ui_devices_view import devices_view, add_devices
+from ui_devices_view import DevicesView
 from ui_device_props_view import device_props_tree_widget
 
 
@@ -21,6 +21,8 @@ class MainWindow(QtWidgets.QMainWindow):
         action.triggered.connect(self.last_added_device__handler)
         menu_bar.addMenu(tree_menu)
 
+        devices_view = DevicesView()
+
         layout_base = QtWidgets.QHBoxLayout()
         layout_base.addWidget(devices_view)
         layout_base.addWidget(device_props_tree_widget)        
@@ -31,7 +33,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.showMaximized()
     
     def reload__handler(self, action):
-        add_devices()
+        devices_view.model.reload()
     
     def last_added_device__handler(self, action):
         from ui_devices_view import last_added_device, set_current_device
