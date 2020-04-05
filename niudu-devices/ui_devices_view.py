@@ -108,16 +108,16 @@ class DevicesModel(QStandardItemModel):
 # telling handler in main thread to add/remove items
 class DeviceMonitor(QObject):
     
-    device_signal = Signal(object)
+    device_signal = Signal(object) # event
     
-    @Slot()
+    @Slot() # handler
     def monitor_devices(self):
         import pyudev
         context = pyudev.Context()
         monitor = pyudev.Monitor.from_netlink(context)
         for device in iter(monitor.poll, None):
             logging.debug(' '.join(['emitting device event:', str(device.action), str(device)]))
-            self.device_signal.emit(device)
+            self.device_signal.emit(device) # fire "device_signal" event, passing device to handler
 
 
 class DevicesView(QTreeView):
@@ -134,12 +134,12 @@ class DevicesView(QTreeView):
         
         self.device_monitor = DeviceMonitor()
         self.thread = QThread(self)
-        self.device_monitor.device_signal.connect(self.device_signal__handler)
+        self.device_monitor.device_signal.connect(self.device_signal__handler) # set handler for device_monitor "device_signal" event
         self.device_monitor.moveToThread(self.thread)
-        self.thread.started.connect(self.device_monitor.monitor_devices)
+        self.thread.started.connect(self.device_monitor.monitor_devices) # set handler for thread "started" event
         self.thread.start()
     
-    @Slot(object)
+    @Slot(object) # handler
     def device_signal__handler(self, device):
         action = device.action
         logging.debug(' '.join(['handling device event:', str(action), str(device)]))
@@ -167,6 +167,9 @@ class DevicesView(QTreeView):
         device_props_tree_widget.clear()
         device_props_tree_widget.addTopLevelItems([item for item in iter_device_props_tree_items(device_path, devices_dict[device_path])])
         device_props_tree_widget.expandAll()
+        if self.history_push_flag:
+            self.history_push(device_path)
+        self.history_push_flag = True
 
     def get_current_device(self):
         current_index = self.currentIndex()
@@ -211,6 +214,43 @@ class DevicesView(QTreeView):
         elif 'physical_node' in device_listdir and chosen_action is action_to_physical:
             target_device_path = os.path.abspath(os.path.join(device_path, os.readlink(os.path.join(device_path, 'physical_node'))))
             self.set_current_device(target_device_path)
+
+    # QTreeView doesn't seem to have any navigation history logic, thus implement our own
+    # Provides signal for external widgets like toolbar nav buttons to update state when history state changes
+    history_list = []
+    history_index = 0
+    history_push_flag = True
+    history_back_flag = False
+    history_forward_flag = False
+    history_signal = Signal(bool, bool)
+
+    def history_push(self, device_path):
+        self.history_list = self.history_list[self.history_index:self.history_index+16]
+        self.history_list.insert(0, device_path)
+        self.history_index = 0
+        self.history_forward_flag = False
+        if len(self.history_list)>1:
+            self.history_back_flag = True
+        self.history_signal.emit(self.history_back_flag, self.history_forward_flag)
+
+    def history_back(self):
+        # TODO: device can be already gone
+        self.history_push_flag = False
+        self.history_index += 1
+        self.set_current_device(self.history_list[self.history_index])
+        self.history_forward_flag = True
+        if self.history_index == len(self.history_list)-1:
+            self.history_back_flag = False
+        self.history_signal.emit(self.history_back_flag, self.history_forward_flag)
+
+    def history_forward(self):
+        self.history_push_flag = False
+        self.history_index -= 1
+        self.set_current_device(self.history_list[self.history_index])
+        self.history_back_flag = True
+        if self.history_index == 0:
+            self.history_forward_flag = False
+        self.history_signal.emit(self.history_back_flag, self.history_forward_flag)
 
 
 def get_parent_item(device_path):
