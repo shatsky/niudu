@@ -1,5 +1,5 @@
 from .pnp import get_device_vendor_and_device_name
-from util import get_label_suffix, get_symlink_path
+from ..util import get_label_suffix, get_symlink_path
 
 
 def update_dict(device_path, device_dict):

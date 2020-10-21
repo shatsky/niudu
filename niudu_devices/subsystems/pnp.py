@@ -1,6 +1,6 @@
 import os
 
-from util import get_label_suffix, get_symlink_path
+from ..util import get_label_suffix, get_symlink_path
 
 
 pnp_db = {}

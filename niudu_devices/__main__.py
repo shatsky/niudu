@@ -7,8 +7,8 @@ from PySide2 import QtWidgets, QtGui
 # i. e. before importing stuff that instantiates QWidget
 app = QtWidgets.QApplication(sys.argv)
 
-from ui_devices_view import DevicesView
-from ui_device_props_view import device_props_tree_widget
+from .ui_devices_view import DevicesView
+from .ui_device_props_view import device_props_tree_widget
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -83,7 +83,7 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def set_view_kernel_device_entries__handler(self):
         current_device_path = self.devices_view.get_current_device()
-        from ui_devices_view import DevicesModel
+        from .ui_devices_view import DevicesModel
         self.devices_view.setModel(DevicesModel())
         self.devices_view.reload()
         if current_device_path is not None:
@@ -91,7 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_view_kernel_device_entries_by_subsystem__handler(self):
         current_device_path = self.devices_view.get_current_device()
-        from ui_devices_view import DevicesBySubsystemModel
+        from .ui_devices_view import DevicesBySubsystemModel
         self.devices_view.setModel(DevicesBySubsystemModel())
         self.devices_view.reload()
         if current_device_path is not None:
@@ -99,7 +99,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_view_kernel_device_entries_by_seat__handler(self):
         current_device_path = self.devices_view.get_current_device()
-        from ui_devices_view import DevicesBySeatModel
+        from .ui_devices_view import DevicesBySeatModel
         self.devices_view.setModel(DevicesBySeatModel())
         self.devices_view.reload()
         if current_device_path is not None:
@@ -107,7 +107,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_view_kernel_device_entries_by_iommu_group__handler(self):
         current_device_path = self.devices_view.get_current_device()
-        from ui_devices_view import DevicesByIOMMUGroupModel
+        from .ui_devices_view import DevicesByIOMMUGroupModel
         self.devices_view.setModel(DevicesByIOMMUGroupModel())
         self.devices_view.reload()
         if current_device_path is not None:
@@ -115,12 +115,13 @@ class MainWindow(QtWidgets.QMainWindow):
     
     def set_view_hardware_locality__handler(self):
         current_device_path = self.devices_view.get_current_device()
-        from ui_devices_view import HwLocModel
+        from .ui_devices_view import HwLocModel
         self.devices_view.setModel(HwLocModel())
         self.devices_view.reload()
         if current_device_path is not None:
             self.devices_view.set_current_device(current_device_path)
 
 
+print('imported')
 window = MainWindow()
 app.exec_()

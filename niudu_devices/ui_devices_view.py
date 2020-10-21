@@ -4,12 +4,12 @@ from PySide2.QtWidgets import QApplication, QMenu, QTreeView
 from PySide2.QtCore import Qt, QThread, Signal, Slot, QObject, QAbstractProxyModel
 from PySide2.QtGui import QStandardItem, QStandardItemModel, QIcon
 
-import subsystems
-from device import iter_props_tree_items as iter_device_props_tree_items
-from device import update_dict as update_device_dict
-from ui_device_props_view import device_props_tree_widget
-import plugins
-import plugins.attach_to_vm
+from . import subsystems
+from .device import iter_props_tree_items as iter_device_props_tree_items
+from .device import update_dict as update_device_dict
+from .ui_device_props_view import device_props_tree_widget
+from . import plugins
+from .plugins import attach_to_vm
 import logging
 import pyudev
 udev_context = pyudev.Context()

@@ -2,8 +2,8 @@ import os
 import stat
 from PySide2.QtWidgets import QTreeWidgetItem
 
-import subsystems
-from util import get_symlink_path, get_file_contents
+from . import subsystems
+from .util import get_symlink_path, get_file_contents
 
 
 # special device files min&maj numbers dicts

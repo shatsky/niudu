@@ -1,4 +1,4 @@
-from util import get_file_contents, get_label_suffix
+from ..util import get_file_contents, get_label_suffix
 
 
 def update_dict(device_path, device_dict):

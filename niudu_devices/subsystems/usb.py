@@ -1,7 +1,7 @@
 import os
 from PySide2.QtWidgets import QTreeWidgetItem
 
-from util import get_file_contents
+from ..util import get_file_contents
 
 
 # http://www.linux-usb.org/usb.ids

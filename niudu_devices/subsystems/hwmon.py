@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QTreeWidgetItem
 
-from util import get_file_contents
+from ..util import get_file_contents
 
 
 def update_dict(device_path, device_dict):

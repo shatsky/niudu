@@ -2,7 +2,7 @@ import os
 from PySide2.QtWidgets import QTreeWidgetItem
 
 from .pnp import pnp_db
-from util import get_file_contents
+from ..util import get_file_contents
 
 
 acpi_names_dict = {
