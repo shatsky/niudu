@@ -60,11 +60,16 @@ def update_dict(device_path, device_dict):
             else:
                 device_dict['usb_iface'] = None
         else:
-            device_dict['name'] += ' device on port ' + device_dict['usb_port']
+            device_dict['name'] += ' device on port ' + device_dict['usb_port'].split('.')[-1]
             device_dict['usb_class'] = get_file_contents(device_path, 'bDeviceClass')
             device_dict['usb_iface'] = None
+            device_dict['usb_kernel_seq_devnum'] = get_file_contents(device_path, 'devnum')
     else:
-        device_dict['name'] += ' bus ' + device_dict['usb_bus']
+        device_dict['name'] += ' bus'
+        if device_dict['usb_bus'].startswith('usb'):
+            device_dict['name'] += ' ' + device_dict['usb_bus'][3:]
+        else:
+            device_dict['name'] += ' ' + device_dict['usb_bus']
         device_dict['usb_iface'] = None
 
     if device_dict['usb_iface'] is None:
@@ -98,18 +103,21 @@ def iter_props_tree_items(device_path, device_dict):
     addr_item = QTreeWidgetItem(subsystem_item, ['Address: '+device_path.split('/')[-1]])
     QTreeWidgetItem(addr_item, ['Bus: '+device_dict['usb_bus']])
     if 'usb_port' in device_dict:
-        QTreeWidgetItem(addr_item, ['Port: '+device_dict['usb_port']])
+        QTreeWidgetItem(addr_item, ['Port path: '+device_dict['usb_port']])
         if 'usb_config' in device_dict:
             QTreeWidgetItem(addr_item, ['Config: '+device_dict['usb_config']])
             if 'usb_iface' in device_dict:
                 QTreeWidgetItem(addr_item, ['Interface: '+device_dict['usb_iface']])
+
+    if 'usb_kernel_seq_devnum' in device_dict:
+        QTreeWidgetItem(subsystem_item, ['Sequential number: '+device_dict['usb_kernel_seq_devnum']])
 
     class_item = QTreeWidgetItem(subsystem_item, ['Class'])
     QTreeWidgetItem(class_item, ['Base: '+device_dict['usb_class']+(' ('+device_dict['usb_class_name']+')' if 'usb_class_name' in device_dict else '')])
     QTreeWidgetItem(class_item, ['Subclass: '+device_dict['usb_subclass']+(' ('+device_dict['usb_subclass_name']+')' if 'usb_subclass_name' in device_dict else '')])
     QTreeWidgetItem(class_item, ['Protocol: '+device_dict['usb_protocol']+(' ('+device_dict['usb_protocol_name']+')' if 'usb_protocol_name' in device_dict else '')])
 
-    if not 'usb_iface' in device_dict:
+    if not device_dict.get('usb_iface'):
         ids_item = QTreeWidgetItem(subsystem_item, ['IDs'])
         vendor = get_file_contents(device_path, 'idVendor')
         device__id = get_file_contents(device_path, 'idProduct')

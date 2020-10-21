@@ -8,3 +8,11 @@ def get_file_contents(device, filename):
 
 def get_symlink_path(device, symlink_name):
     return os.path.realpath(device+'/'+symlink_name)
+
+
+def get_label_suffix(suffix):
+    if suffix.isdigit():
+        return ' ' + suffix
+    elif suffix != '':
+        return ' "' + suffix + '"'
+    return ''

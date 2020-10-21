@@ -24,6 +24,7 @@ with open('/proc/devices') as f:
 # get data for displaying device in devices tree widget and anything else that can be fetched together with it and can be needed later for displaying device details
 def update_dict(device_path, device_dict):
     device_dict['listdir'] = os.listdir(device_path)
+    device_dict['node_name'] = device_path.split('/')[-1]
     if 'subsystem' in device_dict['listdir']:
         subsystem_name = get_symlink_path(device_path, 'subsystem').split('/')[-1]
         device_dict['subsystem'] = subsystem_name
@@ -31,58 +32,65 @@ def update_dict(device_path, device_dict):
             subsystem_module = getattr(subsystems, subsystem_name)
             if hasattr(subsystem_module, 'update_dict'):
                 device = getattr(subsystems, subsystem_name).update_dict(device_path, device_dict)
+                # TODO cleanup
+                device_dict['label'] = device_dict.get('name', device_dict.get('label'))
                 return
-    device_name = device_path.split('/')[-1]
-    if device_dict.get('subsystem') == 'graphics':
-        device_dict['name'] = 'Legacy graphics'
-        if device_path.split('/')[-1].startswith('fb'):
-            device_dict['name'] += ' framebuffer ' + device_path.split('/')[-1][2:]
-        else:
-            device_dict['name'] += ' device "' + device_path.split('/')[-1] + '"'
-        return
-    elif device_dict.get('subsystem') == 'pci_express' and device_name.startswith(device_path.split('/')[-2]) and device_name[12:17]==':pcie' and device_name[17:].isdigit():
-        # "PCI Express port service device"
-        device_dict['name'] = 'PCIe port services (0x' + device_name[17:] + ')'
-        return
-    elif device_dict.get('subsystem') == 'event_source':
-        device_dict['name'] = 'Event source "' + device_name + '"'
-        return
-    if device_name.startswith('ep_'):
-        device_dict['name'] = 'USB endpoint '+device_name[3:]
-    elif device_name.startswith('pci'):
-        device_dict['name'] = 'PCI domain ' + device_name[3:7] + ' host bridge (to bus ' + device_name[8:10] + ') root'
-    elif device_path.startswith('/sys/devices/pnp') and device_path[len('/sys/devices/pnp'):].isdigit():
-        pnp_protocol = device_path[len('/sys/devices/pnp'):]
-        if '00:00' in device_dict['listdir'] and 'firmware_node' in os.listdir(device_path+'/00:00') and get_symlink_path(device_path+'/00:00/firmware_node', 'subsystem').endswith('/acpi'):
-            pnp_protocol = 'ACPI'
-        device_dict['name'] = 'PnP'
-        if pnp_protocol == 'ACPI':
-            device_dict['name'] += ' root for ACPI (devices known exclusively from ACPI)'
-        else:
-            pass
-    elif device_path.startswith('/sys/devices/platform'):
-        if device_path == '/sys/devices/platform':
-            device_dict['name'] = 'Platform root (devices known from this system\'s platform architecture)'
-        else:
-            device_dict['name'] = device_name
-    elif device_path.startswith('/sys/devices/system'):
-        if device_path == '/sys/devices/system':
-            device_dict['name'] = 'System devices (devices and abstractions available on any supported platform)'
-        elif device_path == '/sys/devices/system/node':
-            device_dict['name'] = 'NUMA root'
-        else:
-            device_dict['name'] = device_name
-    elif device_path.startswith('/sys/devices/virtual'):
-        if device_path == '/sys/devices/virtual':
-            device_dict['name'] = 'Virtual devices'
-        else:
-            device_dict['name'] = device_name
-    elif device_name.startswith('ata') and 'ata_port' in device_dict['listdir'] and device_name in os.listdir(device_path+'/ata_port') and get_symlink_path(device_path+'/ata_port/'+device_name, 'subsystem').endswith('ata_port'):
-        device_dict['name'] = 'ATA port ' + device_name[3:]
-    elif device_name.startswith('link') and 'ata_link' in device_dict['listdir'] and device_name in os.listdir(device_path+'/ata_link') and get_symlink_path(device_path+'/ata_link/'+device_name, 'subsystem').endswith('ata_link'):
-        device_dict['name'] = 'ATA link ' + device_name[4:]
+        elif device_dict['subsystem'] == 'block':
+            device_dict['label'] = 'Block storage "{0}"'.format(device_dict['node_name'])
+        elif device_dict['subsystem'] == 'bsg':
+            device_dict['label'] = 'SCSI LUN BSG node'
+        elif device_dict['subsystem'] == 'event_source':
+            device_dict['label'] = 'Event source "' + device_dict['node_name'] + '"'
+            return
+        elif device_dict['subsystem'] == 'graphics':
+            device_dict['label'] = 'Legacy graphics'
+            if device_dict['node_name'].startswith('fb'):
+                device_dict['label'] += ' framebuffer ' + device_dict['node_name'][2:]
+            else:
+                device_dict['label'] += ' device "' + device_dict['node_name'] + '"'
+            return
+        elif device_dict['subsystem'] == 'pci_express' and device_dict['node_name'].startswith(device_path.split('/')[-2]) and device_dict['node_name'][12:17]==':pcie' and device_dict['node_name'][17:].isdigit():
+            # "PCI Express port service device"
+            device_dict['label'] = 'PCIe port services (0x' + device_dict['node_name'][17:] + ')'
+            return
+        elif device_dict['subsystem'] == 'scsi_device':
+            device_dict['label'] = 'SCSI LUN device node'
+        elif device_dict['subsystem'] == 'scsi_disk':
+            device_dict['label'] = 'SCSI LUN disk node'
+        elif device_dict['subsystem'] == 'scsi_host':
+            device_dict['label'] = 'SCSI host node'
     else:
-        device_dict['name'] = device_name
+        if device_path.startswith('/sys/devices/pci') and '/' not in device_path[len('/sys/devices/pci'):]:
+            device_dict['label'] = 'PCI domain ' + device_dict['node_name'][3:7] + ' host bridge (to bus ' + device_dict['node_name'][8:10] + ') root'
+        elif device_path.startswith('/sys/devices/pnp') and device_path[len('/sys/devices/pnp'):].isdigit():
+            device_dict['label'] = 'PnP'
+            pnp_protocol = device_path[len('/sys/devices/pnp'):]
+            if '00:00' in device_dict['listdir'] and 'firmware_node' in os.listdir(device_path+'/00:00') and get_symlink_path(device_path+'/00:00/firmware_node', 'subsystem').endswith('/acpi'):
+                device_dict['label'] += ' root for ACPI (devices known exclusively from ACPI)'
+            else:
+                device_dict['label'] += ' root for protocol ' + pnp_protocol
+        elif device_path == '/sys/devices/platform':
+            device_dict['label'] = 'Platform root (devices known from this system\'s platform architecture)'
+        elif device_path.startswith('/sys/devices/system'):
+            if device_path == '/sys/devices/system':
+                device_dict['label'] = 'System devices (devices and abstractions available on any supported platform)'
+            elif device_path == '/sys/devices/system/node':
+                device_dict['label'] = 'NUMA root'
+            else:
+                device_dict['label'] = device_dict['node_name']
+        elif device_path.startswith('/sys/devices/virtual'):
+            if device_path == '/sys/devices/virtual':
+                device_dict['label'] = 'Virtual devices'
+            else:
+                device_dict['label'] = device_dict['node_name']
+        # ATA
+        elif device_dict['node_name'].startswith('ata') and 'ata_port' in device_dict['listdir'] and device_dict['node_name'] in os.listdir(device_path+'/ata_port') and get_symlink_path(device_path+'/ata_port/'+device_dict['node_name'], 'subsystem').endswith('ata_port'):
+            device_dict['label'] = 'ATA port ' + device_dict['node_name'][3:]
+        elif device_dict['node_name'].startswith('link') and 'ata_link' in device_dict['listdir'] and device_dict['node_name'] in os.listdir(device_path+'/ata_link') and get_symlink_path(device_path+'/ata_link/'+device_dict['node_name'], 'subsystem').endswith('ata_link'):
+            device_dict['label'] = 'ATA link ' + device_dict['node_name'][4:]
+        # USB
+        elif device_dict['node_name'].startswith('ep_'):
+            device_dict['label'] = 'USB endpoint '+device_dict['node_name'][3:]
 
 
 # yield tree items for device properties tree widget

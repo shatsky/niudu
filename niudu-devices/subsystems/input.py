@@ -1,17 +1,24 @@
-import os
-
-from util import get_file_contents
+from util import get_file_contents, get_label_suffix
 
 
 def update_dict(device_path, device_dict):
-    device_name = device_path.split('/')[-1]
-    device_dict['name'] = 'Input'
-    if device_name.startswith('event'):
-        device_dict['name'] += ' event interface node'
-    elif device_name.startswith('mouse'):
-        device_dict['name'] += ' mouse interface node'
-    device_dict['name'] += ' ' + device_name[5:]
-    if 'name' in os.listdir(device_path):
+    device_dict['label'] = 'Input'
+    if device_dict['node_name'].startswith('input'):
+        device_dict['label'] += ' device'
+        device_dict['label'] += get_label_suffix(device_dict['node_name'][5:])
+    elif device_dict['node_name'].startswith('event'):
+        device_dict['label'] += ' event interface'
+        device_dict['label'] += get_label_suffix(device_dict['node_name'][5:])
+    elif device_dict['node_name'].startswith('mouse'):
+        device_dict['label'] += ' legacy mouse interface'
+        device_dict['label'] += get_label_suffix(device_dict['node_name'][5:])
+    elif device_dict['node_name'].startswith('js'):
+        device_dict['label'] += ' legacy joystick interface'
+        device_dict['label'] += get_label_suffix(device_dict['node_name'][2:])
+    else:
+        device_dict['label'] += ' interface'
+        device_dict['label'] += get_label_suffix(device_dict['node_name'])
+    if 'name' in device_dict['listdir']:
         input_name = get_file_contents(device_path, 'name')
         if input_name:
-            device_dict['name'] += ': "' + input_name + '"'
+            device_dict['label'] += ': "' + input_name + '"'

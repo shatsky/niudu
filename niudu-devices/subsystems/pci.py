@@ -6,7 +6,7 @@ from util import get_file_contents
 
 db = {}
 db_class = {}
-with open('/nix/store/lj9647ggaf470xrvl8cr5lr8r2w2ji6i-pciutils-3.6.2/share/pci.ids') as f:
+with open('/nix/store/f3zp39qm98iqskjpd7abny0fps86mnzl-pciutils-3.6.4/share/pci.ids') as f:
     scope_class = False
     for line in f:
         if line.startswith('#'): continue

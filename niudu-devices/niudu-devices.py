@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from PySide2 import QtWidgets, QtGui
 
@@ -11,10 +13,20 @@ from ui_device_props_view import device_props_tree_widget
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
-        QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         
         menu_bar = self.menuBar()
         tree_menu = QtWidgets.QMenu('Tree', self)
+        self.action_set_view_kernel_device_entries = tree_menu.addAction('View - Kernel device entries')
+        self.action_set_view_kernel_device_entries.triggered.connect(self.set_view_kernel_device_entries__handler)
+        self.action_set_view_kernel_device_entries_by_subsystem = tree_menu.addAction('View - Kernel device entries, by subsystem')
+        self.action_set_view_kernel_device_entries_by_subsystem.triggered.connect(self.set_view_kernel_device_entries_by_subsystem__handler)
+        self.action_set_view_kernel_device_entries_by_seat = tree_menu.addAction('View - Kernel device entries, by seat')
+        self.action_set_view_kernel_device_entries_by_seat.triggered.connect(self.set_view_kernel_device_entries_by_seat__handler)
+        self.action_set_view_kernel_device_entries_by_iommu_group = tree_menu.addAction('View - Kernel device entries, by IOMMU group')
+        self.action_set_view_kernel_device_entries_by_iommu_group.triggered.connect(self.set_view_kernel_device_entries_by_iommu_group__handler)
+        self.action_set_view_kernel_device_entries_by_iommu_group = tree_menu.addAction('View - Hardware locality')
+        self.action_set_view_kernel_device_entries_by_iommu_group.triggered.connect(self.set_view_hardware_locality__handler)
         action = tree_menu.addAction(QtGui.QIcon.fromTheme('view-refresh'), 'Reload')
         action.triggered.connect(self.reload__handler)
         action = tree_menu.addAction('Go to last added device')
@@ -67,7 +79,47 @@ class MainWindow(QtWidgets.QMainWindow):
         self.action_back.setEnabled(history_back_flag)
         self.action_forward.setEnabled(history_forward_flag)
         self.toolbar_action_back.setEnabled(history_back_flag)
-        self.toolbar_action_forward.setEnabled(history_forward_flag)        
+        self.toolbar_action_forward.setEnabled(history_forward_flag)
+    
+    def set_view_kernel_device_entries__handler(self):
+        current_device_path = self.devices_view.get_current_device()
+        from ui_devices_view import DevicesModel
+        self.devices_view.setModel(DevicesModel())
+        self.devices_view.reload()
+        if current_device_path is not None:
+            self.devices_view.set_current_device(current_device_path)
+
+    def set_view_kernel_device_entries_by_subsystem__handler(self):
+        current_device_path = self.devices_view.get_current_device()
+        from ui_devices_view import DevicesBySubsystemModel
+        self.devices_view.setModel(DevicesBySubsystemModel())
+        self.devices_view.reload()
+        if current_device_path is not None:
+            self.devices_view.set_current_device(current_device_path)
+
+    def set_view_kernel_device_entries_by_seat__handler(self):
+        current_device_path = self.devices_view.get_current_device()
+        from ui_devices_view import DevicesBySeatModel
+        self.devices_view.setModel(DevicesBySeatModel())
+        self.devices_view.reload()
+        if current_device_path is not None:
+            self.devices_view.set_current_device(current_device_path)
+
+    def set_view_kernel_device_entries_by_iommu_group__handler(self):
+        current_device_path = self.devices_view.get_current_device()
+        from ui_devices_view import DevicesByIOMMUGroupModel
+        self.devices_view.setModel(DevicesByIOMMUGroupModel())
+        self.devices_view.reload()
+        if current_device_path is not None:
+            self.devices_view.set_current_device(current_device_path)
+    
+    def set_view_hardware_locality__handler(self):
+        current_device_path = self.devices_view.get_current_device()
+        from ui_devices_view import HwLocModel
+        self.devices_view.setModel(HwLocModel())
+        self.devices_view.reload()
+        if current_device_path is not None:
+            self.devices_view.set_current_device(current_device_path)
 
 
 window = MainWindow()
