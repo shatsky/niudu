@@ -2,11 +2,12 @@ import os
 from PySide2.QtWidgets import QTreeWidgetItem
 
 from ..util import get_file_contents
+from ..static import data_path
 
 
 db = {}
 db_class = {}
-with open('/nix/store/f3zp39qm98iqskjpd7abny0fps86mnzl-pciutils-3.6.4/share/pci.ids') as f:
+with open(os.path.join(data_path, 'hwdata', 'pci.ids')) as f:
     scope_class = False
     for line in f:
         if line.startswith('#'): continue

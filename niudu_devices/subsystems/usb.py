@@ -2,12 +2,13 @@ import os
 from PySide2.QtWidgets import QTreeWidgetItem
 
 from ..util import get_file_contents
+from ..static import data_path
 
 
 # http://www.linux-usb.org/usb.ids
 usb_db = {}
 usb_db_class = {}
-with open(os.path.dirname(os.path.abspath(__file__))+'/usb.ids', errors='replace') as f:
+with open(os.path.join(data_path, 'hwdata', 'usb.ids'), errors='replace') as f:
     scope = None
     for line in f:
         line = str(line)

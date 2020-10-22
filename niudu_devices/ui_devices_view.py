@@ -10,6 +10,7 @@ from .device import update_dict as update_device_dict
 from .ui_device_props_view import device_props_tree_widget
 from . import plugins
 from .plugins import attach_to_vm
+from .static import data_path
 import logging
 import pyudev
 udev_context = pyudev.Context()
@@ -509,10 +510,10 @@ clipboard = QApplication.clipboard()
    
 # load icons
 icons = {}
-icons_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons')
-for item_name in os.listdir(icons_dir):
+icons_path = os.path.join(data_path, 'icons')
+for item_name in os.listdir(icons_path):
     if item_name.endswith('.png'):
-        icons[item_name[:-len('.png')]] = QIcon(os.path.join(icons_dir, item_name))
+        icons[item_name[:-len('.png')]] = QIcon(os.path.join(icons_path, item_name))
 if 'scsi' in icons:
     for subsystem_name in ['bsg', 'scsi_device', 'scsi_disk', 'scsi_host']:
         icons[subsystem_name] = icons['scsi']

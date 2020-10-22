@@ -1,10 +1,11 @@
 import os
 
 from ..util import get_label_suffix, get_symlink_path
+from ..static import data_path
 
 
 pnp_db = {}
-with open(os.path.dirname(os.path.abspath(__file__))+'/pnp.ids') as f:
+with open(os.path.join(data_path, 'hwdata', 'pnp.ids')) as f:
     scope_class = False
     for line in f:
         if line.startswith('#'): continue
