@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=NIUDU Devices
+Exec=niudu-devices
+Type=Application
+Terminal=false
+Categories=System;
