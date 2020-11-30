@@ -109,7 +109,7 @@ class DevicesModel(QStandardItemModel):
                 if parent_item is saved_parent_item:
                     break
 
-        icon = icons[device_dict['subsystem']] if 'subsystem' in device_dict and device_dict['subsystem'] in icons else icons['device']
+        icon = icons[device_dict['icon']] if 'icon' in device_dict and device_dict['icon'] in icons else icons[device_dict['subsystem']] if 'subsystem' in device_dict and device_dict['subsystem'] in icons else icons['device']
         item = QStandardItem(icon, device_dict.get('label', '"'+device_dict['node_name']+'"'))
         item.setData(device_path) # to be able to get device path for selected item
         pos = get_device_item_position(device_path, parent_item)

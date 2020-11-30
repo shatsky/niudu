@@ -74,6 +74,7 @@ def update_dict(device_path, device_dict):
             device_dict['usb_class'] = get_file_contents(device_path, 'bDeviceClass')
             device_dict['usb_iface'] = None
             device_dict['usb_kernel_seq_devnum'] = get_file_contents(device_path, 'devnum')
+            device_dict['icon'] = 'usb_device'
     else:
         device_dict['name'] += ' bus'
         if device_dict['usb_bus'].startswith('usb'):
