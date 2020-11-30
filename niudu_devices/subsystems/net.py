@@ -12,7 +12,15 @@ def iter_props_tree_items(device_path, device_dict):
     subsystem_item = QTreeWidgetItem(parent_item, ['Subsystem: Network'])
     
     QTreeWidgetItem(subsystem_item, ['Address: '+get_file_contents(device_path, 'address')])
-    QTreeWidgetItem(subsystem_item, ['Carrier: '+get_file_contents(device_path, 'carrier')])
-    QTreeWidgetItem(subsystem_item, ['Speed: '+get_file_contents(device_path, 'speed')])
+    try:
+        QTreeWidgetItem(subsystem_item, ['Carrier: '+get_file_contents(device_path, 'carrier')])
+    except OSError as err:
+        if err.errno != 22:
+            raise
+    try:
+        QTreeWidgetItem(subsystem_item, ['Speed: '+get_file_contents(device_path, 'speed')])
+    except OSError as err:
+        if err.errno != 22:
+            raise
     
     yield subsystem_item

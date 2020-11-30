@@ -35,7 +35,8 @@ def iter_props_tree_items(device_path, device_dict):
         type_item = QTreeWidgetItem(subsystem_item, ['Type: RAM disk'])
     if major == 7: # loop
         type_item = QTreeWidgetItem(subsystem_item, ['Type: loop'])
-        QTreeWidgetItem(type_item, ['Backing file: '+get_file_contents(device_path, 'loop/backing_file')])
+        if os.path.exists(os.path.join(device_path, 'loop')):
+            QTreeWidgetItem(type_item, ['Backing file: '+get_file_contents(device_path, 'loop/backing_file')])
     elif major == 8: # sd
         type_item = QTreeWidgetItem(subsystem_item, ['Type: SCSI disk'])
     elif major == 9: # md
