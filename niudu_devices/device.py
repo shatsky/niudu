@@ -115,6 +115,7 @@ def iter_props_tree_items(device_path, device_dict):
         else:
             files_type = 'char'
             QTreeWidgetItem(files_item, ['Type: character'])
+        # https://www.kernel.org/doc/Documentation/admin-guide/devices.txt
         numbers_item = QTreeWidgetItem(files_item, ['Numbers: '+numbers])
         major, minor = numbers.split(':')
         QTreeWidgetItem(numbers_item, ['Major: '+major+' ('+db_numbers[files_type][int(major)]+')'])

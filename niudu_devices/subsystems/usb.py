@@ -58,6 +58,15 @@ def update_dict(device_path, device_dict):
             if addr:
                 device_dict['usb_iface'] = addr
                 device_dict['name'] += ' interface ' + device_dict['usb_iface']
+                # TODO ADB
+                # adb/transport_usb.c:is_adb_interface()
+                # adb/usb_vendors.c
+                # if parent device has relevant vendor id
+                #  and interface class is 0xff
+                #  and interface subclass is 0x42
+                #  and interface protocol is 0x01
+                ## MTP
+                # https://github.com/libmtp/libmtp/blob/master/util/mtp-probe.c
             else:
                 device_dict['usb_iface'] = None
         else:
