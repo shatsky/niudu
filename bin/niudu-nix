@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+import site
+import os
+
+
+site.addsitedir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../lib/python/site-packages'))
+
+
+import niudu_nix
+import niudu_nix.__main__
