@@ -3,7 +3,7 @@
 stdenv.mkDerivation {
   name = "niudu-playground";
   src = builtins.fetchGit {
-    url = "/home/eugene/Projects/niudu";
+    url = ./.;
   };
   nativeBuildInputs = [ unzip python3Packages.wrapPython boost ];
   buildInputs = [ libudev python3Packages.pyside2 python3Packages.pydenticon
