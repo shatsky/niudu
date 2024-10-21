@@ -1,12 +1,9 @@
 # NIUDU
 
-This project is intended to produce several GUI utilities for observing and controlling GNU/Linux internals. It's written in Python3 with Qt (via PySide6 bindings). It currently includes:
+Prototypes of several GUI utilities for observing and controlling GNU/Linux internals which miss on Linux desktop. Written in Python3 with Qt (via PySide6 bindings). Project currently includes:
 
 - niudu-devices, which visualises device hierarchy (as provided by kernel via /sys/devices) and device properties
 - niudu-nix, which visualises Nix store and scope
-
-Project is still in an early stage, it's full of bugs, incomplete functionality and the code can make your eyes bleed.
-
 
 ## Building and installing
 
